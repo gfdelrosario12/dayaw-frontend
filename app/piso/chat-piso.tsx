@@ -4,7 +4,7 @@ import { useState, useRef, useEffect } from "react"
 import { Send, Loader2, Bot, User } from "lucide-react"
 import { useLanguage } from "@/context/language-context"
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://127.0.0.1:8000/api"
+// Removed: const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://127.0.0.1:8000/api"
 
 export function ChatPiso() {
     const { t } = useLanguage()
@@ -39,63 +39,57 @@ export function ChatPiso() {
         setMessages(prev => [...prev, { role: "user", content: userMessage }])
         setIsLoading(true)
 
+        // START: Simulated Backend Response
         try {
-            console.log("Sending request to:", `${API_BASE_URL}/chat`)
+            // Simulate a network delay
+            await new Promise(resolve => setTimeout(resolve, 1500))
 
-            const response = await fetch(`${API_BASE_URL}/chat`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ message: userMessage }),
-            })
+            // Simulated AI response based on the user's message
+            let simulatedResponse: string
+            const lowerCaseMessage = userMessage.toLowerCase()
 
-
-            console.log("Response status:", response.status)
-            console.log("Response headers:", response.headers)
-
-            if (!response.ok) {
-                const errorText = await response.text()
-                console.error("Error response:", errorText)
-                throw new Error(`HTTP error! status: ${response.status}`)
-            }
-
-            const contentType = response.headers.get("content-type")
-            if (!contentType || !contentType.includes("application/json")) {
-                const text = await response.text()
-                console.error("Received non-JSON response:", text)
-                throw new Error("Server returned non-JSON response")
-            }
-
-            const data = await response.json()
-
-            setMessages(prev => [
-                ...prev,
-                { role: "assistant", content: data.response || "Sorry, I couldn't process that." },
-            ])
-        } catch (error) {
-            console.error("Chat error:", error)
-
-            let errorMessage = t(
-                "Sorry, I encountered an error. Please make sure the backend server is running on " + API_BASE_URL,
-                "Paumanhin, may naganap na error. Siguraduhing tumatakbo ang backend server sa " + API_BASE_URL
-            )
-
-            if (error instanceof TypeError && error.message.includes("fetch")) {
-                errorMessage = t(
-                    "Cannot connect to backend server. Please check if it's running on " + API_BASE_URL,
-                    "Hindi makakonekta sa backend server. Pakitingnan kung tumatakbo ito sa " + API_BASE_URL
+            if (lowerCaseMessage.includes(t("education", "edukasyon"))) {
+                simulatedResponse = t(
+                    "The education sector usually receives the largest share of the national budget, mandated by the Philippine Constitution.",
+                    "Ang sektor ng edukasyon ay karaniwang tumatanggap ng pinakamalaking bahagi ng pambansang badyet, ayon sa mandato ng Saligang Batas ng Pilipinas."
+                )
+            } else if (lowerCaseMessage.includes(t("gab", "gab")) || lowerCaseMessage.includes(t("gaa", "gaa"))) {
+                simulatedResponse = t(
+                    "The General Appropriations Bill (GAB) becomes the General Appropriations Act (GAA) upon enactment by the President.",
+                    "Ang General Appropriations Bill (GAB) ay nagiging General Appropriations Act (GAA) kapag pinagtibay ito ng Pangulo."
+                )
+            } else if (lowerCaseMessage.includes(t("infrastructure", "imprastraktura"))) {
+                simulatedResponse = t(
+                    "Infrastructure spending is a key component of the budget, aimed at national development projects.",
+                    "Ang paggasta sa imprastraktura ay isang pangunahing bahagi ng badyet, na naglalayong sa mga proyekto para sa pambansang kaunlaran."
+                )
+            } else {
+                simulatedResponse = t(
+                    "That's an interesting question! For now, I can only provide general information about the Philippine budget process and its major allocations.",
+                    "Interesante ang tanong mo! Sa ngayon, maaari lang akong magbigay ng pangkalahatang impormasyon tungkol sa proseso ng badyet ng Pilipinas at ang mga pangunahing alokasyon nito."
                 )
             }
 
             setMessages(prev => [
                 ...prev,
+                { role: "assistant", content: simulatedResponse },
+            ])
+        } catch (error) {
+            console.error("Simulated Chat error:", error)
+            setMessages(prev => [
+                ...prev,
                 {
                     role: "assistant",
-                    content: errorMessage,
+                    content: t(
+                        "Sorry, a simulated error occurred.",
+                        "Paumanhin, nagkaroon ng kunwaring error."
+                    ),
                 },
             ])
         } finally {
             setIsLoading(false)
         }
+        // END: Simulated Backend Response
     }
 
     const suggestedQuestions = [

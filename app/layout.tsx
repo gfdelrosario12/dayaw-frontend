@@ -10,7 +10,6 @@ import "./globals.css"
 export const metadata: Metadata = {
   title: "Project Dayaw - Budget Transparency Dashboard",
   description: "Open governance and fiscal transparency platform for the Philippines",
-  generator: "v0.app",
 }
 
 export default function RootLayout({
