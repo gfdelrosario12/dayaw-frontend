@@ -1,10 +1,13 @@
 "use client"
 
 import Link from "next/link"
+import Image from "next/image" // 1. Import next/image
 import { Button } from "@/components/ui/button"
 import { useLanguage } from "@/context/language-context"
 import { Menu, X } from "lucide-react"
 import { useState } from "react"
+// 2. Import the image file directly (adjust path as needed)
+import DayawLogo from './Project Dayaw.png' 
 
 export function Navbar() {
   const { language, setLanguage, t } = useLanguage()
@@ -23,8 +26,16 @@ export function Navbar() {
         <div className="flex h-16 items-center justify-between">
           {/* Logo */}
           <Link href="/" className="flex items-center gap-2">
-            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-accent">
-              <span className="text-xl font-bold text-accent-foreground">₱</span>
+            <div className="flex h-10 w-10 items-center justify-center rounded-lg">
+              {/* 3. Use the Image component and the imported logo variable */}
+              <Image 
+                src={DayawLogo} 
+                alt="Project Dayaw Logo" 
+                className="h-8 w-8" 
+                // Set the intrinsic size (required by next/image)
+                width={32} 
+                height={32} 
+              />
             </div>
             <div className="flex flex-col">
               <span className="text-lg font-bold leading-none">Project Dayaw</span>
