@@ -15,20 +15,26 @@ type InfoModalProps = {
 function InfoModal({ title, content, isOpen, onClose }: InfoModalProps) {
   if (!isOpen) return null
 
+  // The modal's background color is changed here from 'bg-white p-6 shadow-2xl dark:bg-gray-800'
+  // to use a custom inline style for the specific blue color #0e171e.
+  // We also adjust the text color to be light since the background is dark.
   return (
     <div
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm"
       onClick={onClose}
     >
       <div
-        className="max-h-[90vh] w-11/12 max-w-2xl overflow-y-auto rounded-lg bg-white p-6 shadow-2xl dark:bg-gray-800"
+        className="max-h-[90vh] w-11/12 max-w-2xl overflow-y-auto rounded-lg p-6 shadow-2xl"
+        style={{ backgroundColor: "#0e171e" }} // Changed background color to #0e171e
         onClick={(e) => e.stopPropagation()} // Prevent closing when clicking inside
       >
-        <div className="flex items-center justify-between border-b pb-3 dark:border-gray-700">
-          <h2 className="text-xl font-bold text-gray-900 dark:text-white">{title}</h2>
+        <div className="flex items-center justify-between border-b pb-3 border-gray-700">
+          {/* Changed text color to white/light for contrast */}
+          <h2 className="text-xl font-bold text-white">{title}</h2>
           <button
             onClick={onClose}
-            className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+            // Adjusted hover color for contrast on the dark background
+            className="text-gray-400 hover:text-gray-300"
             aria-label="Close modal"
           >
             <svg
@@ -47,7 +53,8 @@ function InfoModal({ title, content, isOpen, onClose }: InfoModalProps) {
             </svg>
           </button>
         </div>
-        <div className="pt-4 text-gray-700 dark:text-gray-300">
+        {/* Changed text color to light gray for content contrast */}
+        <div className="pt-4 text-gray-300">
           {content}
         </div>
       </div>
@@ -90,7 +97,7 @@ export function Footer() {
   const aboutContent = (
     <div className="space-y-4">
       <p className="font-semibold">
-        {t("Project Dayaw: The Budget Transparency Tracker", "Proyekto Dayaw: The Budget Transparency Tracker")}
+        {t("Project Dayaw: The Budget Transparency Tracker", "Project Dayaw: The Budget Transparency Tracker")}
       </p>
       <p>
         {t(
@@ -155,9 +162,9 @@ export function Footer() {
           </li>
         ))}
       </ul>
-      <p>{t("From the Polytechnic University of the Philippines", "Mula sa Polytechnic University of the Philippines")}</p>
+      <p>{t("From the Polytechnic University of the Philippines - College of Engineering and College of Computer and Information Sciences", "Mula sa Polytechnic University of the Philippines - Kolehiyo ng Inhinyeriya at Kolehiyo ng Agham sa Kompyuter at Impormasyon")}</p>
 
-      <div className="mt-4 border-t pt-4 dark:border-gray-700">
+      <div className="mt-4 border-t pt-4 border-gray-700">
         <p className="font-semibold">{t("Contact the Project Leader", "Makipag-ugnayan sa Project Leader")}</p>
         <p className="mt-1 text-sm">
           <strong>Gladwin Ferdz Del I. Rosario</strong>
@@ -200,7 +207,7 @@ export function Footer() {
               <p className="text-sm text-muted-foreground leading-relaxed">
                 {t(
                   "Transparency in Every Peso - Open governance and fiscal transparency for the Philippines",
-                  "Transparency sa Bawat Piso - Bukas na pamamahala at transparency ng badyet para sa Pilipinas",
+                  "Kalinawan sa Bawat Piso – Bukás na pamamahala at malinaw na paggamit ng pondo para sa Pilipinas",
                 )}
               </p>
             </div>
@@ -229,7 +236,7 @@ export function Footer() {
                     onClick={() => setModalType("about")}
                     className="hover:text-accent transition-colors text-left"
                   >
-                    {t("About", "Tungkol")}
+                    {t("About", "Tungkol sa Proyekto")}
                   </button>
                 </li>
                 <li>
@@ -237,7 +244,7 @@ export function Footer() {
                     onClick={() => setModalType("data")}
                     className="hover:text-accent transition-colors text-left"
                   >
-                    {t("Data Sources", "Mga Pinagmulan ng Data")}
+                    {t("Data Sources", "Mga Pinagmulan ng Datos")}
                   </button>
                 </li>
                 <li>
@@ -245,16 +252,17 @@ export function Footer() {
                     onClick={() => setModalType("contact")}
                     className="hover:text-accent transition-colors text-left"
                   >
-                    {t("Contact", "Makipag-ugnayan")}
+                    {t("Contact Us", "Makipag-ugnayan Sa Amin")}
                   </button>
                 </li>
               </ul>
             </div>
           </div>
 
-          <div className="mt-8 border-t border-border pt-4 text-center text-xs text-muted-foreground">
+          <div className="mt-8 w-screen relative left-1/2 right-1/2 -ml-[50vw] -mr-[50vw] border-t border-border pt-4 text-center text-xs text-muted-foreground">
             © 2025 Project Dayaw. {t("All rights reserved.", "Lahat ng karapatan ay nakalaan.")}
           </div>
+
         </div>
       </footer>
 

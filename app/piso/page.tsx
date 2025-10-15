@@ -3,9 +3,10 @@
 import { Card } from "@/components/ui/card"
 import { LanguageProvider, useLanguage } from "@/context/language-context"
 import { motion } from "framer-motion"
-import { Sparkles, BookOpen, TrendingUp, HelpCircle } from "lucide-react"
+import { Sparkles, BookOpen, TrendingUp, HelpCircle, AlertCircle } from "lucide-react"
 import { ChatPiso } from "./chat-piso"
 import { Navbar } from "@/components/layout/navbar"
+import { Footer } from "@/components/layout/footer"
 
 function PisoContent() {
   const { t } = useLanguage()
@@ -50,7 +51,30 @@ function PisoContent() {
           </div>
         </section>
 
+        {/* NEW NOTICE SECTION */}
         <section className="border-t border-border bg-card">
+          <div className="container mx-auto px-4 py-8 text-center">
+            <motion.div
+              initial={{ opacity: 0 }}
+              whileInView={{ opacity: 1 }}
+              transition={{ duration: 0.6 }}
+              viewport={{ once: true }}
+              className="mx-auto max-w-3xl flex flex-col items-center"
+            >
+              <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-warning/10">
+                <AlertCircle className="h-6 w-6 text-warning" />
+              </div>
+              <p className="text-sm text-muted-foreground leading-relaxed">
+                {t(
+                  "Note: The AI section currently uses sample or placeholder data. Information provided may be incomplete or inaccurate.",
+                  "Paunawa: Ang bahagi ng AI ay kasalukuyang gumagamit ng mga pansamantalang datos lamang. Maaaring hindi kumpleto o hindi wasto ang ilang impormasyon.",
+                )}
+              </p>
+            </motion.div>
+          </div>
+        </section>
+
+        <section className="container mx-auto px-4 py-16">
           <div className="container mx-auto px-4 py-16">
             <h2 className="mb-12 text-center text-2xl font-bold text-foreground">
               {t("What Piso Can Help You With", "Ano ang Maitutulong ni Piso")}
@@ -129,6 +153,7 @@ function PisoContent() {
           </div>
         </section>
       </main>
+      <Footer />
     </div>
   )
 }
