@@ -21,24 +21,56 @@ import {
   DialogTitle,
   DialogDescription,
 } from "@/components/ui/dialog"
-
-// NEW: Import the external component
-import ByAgency from "./ByAgency"
-
+import { Input } from "@/components/ui/input" 
 
 // --- Types ---
-interface Sector { name: string; value: number }
-interface Agency { name: string; budget: number; [key: string]: any; } // Added [key: string]: any to simplify
+
+// Define the common metadata fields used across multiple data types
+interface BudgetMetadata {
+  SORDER?: number;
+  DEPARTMENT?: string;
+  UACS_DPT_DSC?: string;
+  AGENCY?: string;
+  UACS_AGY_DSC?: string;
+  PREXC_FPAP_ID?: string;
+  PREXC_LEVEL?: string;
+  DSC?: string;
+  OPERUNIT?: string;
+  UACS_OPER_DSC?: string;
+  UACS_REG_ID?: string;
+  UACS_OPERDIV_ID?: string;
+  UACS_DIV_DSC?: string;
+  FUNDCD?: string;
+  UACS_FUNDSUBCAT_DSC?: string;
+  UACS_EXP_CD?: string;
+  UACS_EXP_DSC?: string;
+  UACS_SOBJ_CD?: string;
+  UACS_SOBJ_DSC?: string;
+  AMT?: number;
+}
+
+// FIX: Extend Sector and Agency interfaces to include BudgetMetadata
+interface Sector extends BudgetMetadata {
+  name: string;
+  value: number;
+}
+
+interface Agency extends BudgetMetadata {
+  name: string;
+  budget: number;
+}
+// END FIX
+
 interface Expense {
   name: string
   value: number
   children?: Expense[]
   [key: string]: any
 }
-interface Region {
+
+interface Region extends BudgetMetadata { // Region also uses metadata
   region: string;
   value: number;
-  [key: string]: any; // Added [key: string]: any to simplify
 }
 
 interface AgencyDetail { agency: string; expenses: Expense[] }
@@ -50,7 +82,7 @@ interface DashboardData {
   regions: Region[]
 }
 
-// --- Modal Component (No Change) ---
+// --- Modal Component ---
 interface DataModalProps {
   title: string
   data: any
@@ -94,13 +126,13 @@ const DataModal = ({ title, data, isOpen, onClose }: DataModalProps) => {
   )
 }
 
-// --- Custom Tooltip for Hover (Exported for use in AgencyCharts) ---
+// --- Custom Tooltip for Hover ---
 interface ChartTooltipProps {
   active?: boolean
   payload?: any[]
 }
 
-export const ChartTooltip = ({ active, payload }: ChartTooltipProps) => { // Exported
+const ChartTooltip = ({ active, payload }: ChartTooltipProps) => {
   if (!active || !payload || payload.length === 0) return null
   const data = payload[0].payload
 
@@ -123,13 +155,86 @@ export const ChartTooltip = ({ active, payload }: ChartTooltipProps) => { // Exp
     <div className="bg-white border rounded-md shadow-lg p-3 text-sm">
       {fields.map(f => (
         <div key={f.key} className="flex justify-between">
-          <span className="font-medium text-gray-600">{f.key}:</span>
+          <span className="font-medium text-gray-600">{f.key.toUpperCase()}:</span>
           <span className="font-bold">{String(f.value)}</span>
         </div>
       ))}
     </div>
   )
 }
+
+// --- Missing ByAgency Component ---
+interface ByAgencyProps {
+  agencies: Agency[]
+  selectedAgency: string
+  setSelectedAgency: (agencyName: string) => void
+  handleChartItemClick: (data: any, title: string) => void
+  isLoading: boolean
+}
+
+const ByAgency = ({ agencies, selectedAgency, setSelectedAgency, handleChartItemClick, isLoading }: ByAgencyProps) => {
+  const { t } = useLanguage()
+  const [searchTerm, setSearchTerm] = useState("")
+
+  const filteredAgencies = agencies.filter(agency =>
+    agency.name.toLowerCase().includes(searchTerm.toLowerCase())
+  ).sort((a, b) => b.budget - a.budget)
+
+  return (
+    <div className="space-y-6">
+      <div className="flex flex-col md:flex-row gap-4">
+        <Input
+          placeholder={t("Search agency...", "Maghanap ng ahensya...")}
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          className="max-w-sm"
+        />
+        <Select value={selectedAgency} onValueChange={setSelectedAgency}>
+          <SelectTrigger className="w-full md:w-[180px]">
+            <SelectValue placeholder={t("Select Agency", "Pumili ng Ahensya")} />
+          </SelectTrigger>
+          <SelectContent>
+            {agencies.map((agency) => (
+              <SelectItem key={agency.name} value={agency.name}>
+                {agency.name}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+
+      <ChartPanel title={t("Agency Budget Overview", "Pangkalahatang-ideya ng Badyet ng Ahensya")} isLoading={isLoading}>
+        <ResponsiveContainer width="100%" height={400}>
+          <BarChart
+            data={filteredAgencies}
+            margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
+          >
+            <CartesianGrid strokeDasharray="3 3" />
+            <XAxis dataKey="name" angle={-45} textAnchor="end" height={60} interval={0} />
+            <YAxis tickFormatter={v => `₱${Number(v).toLocaleString()}`} />
+            <Tooltip content={<ChartTooltip />} />
+            <Bar
+              dataKey="budget"
+              fill="#F59E0B"
+              onClick={(data) => {
+                if (typeof data.name === "string") {
+                  setSelectedAgency(data.name);
+                  handleChartItemClick(data, `Agency: ${data.name}`);
+                }
+              }}
+              cursor="pointer"
+            />
+          </BarChart>
+        </ResponsiveContainer>
+        <p className="mt-4 text-center text-sm text-muted-foreground">
+          {t("Click on an agency bar to select it and see its expense breakdown below.", "Pindutin ang bar ng ahensya upang piliin ito at makita ang detalye ng gastos sa ibaba.")}
+        </p>
+      </ChartPanel>
+    </div>
+  )
+}
+// --- End of Missing ByAgency Component ---
+
 
 // --- Main Dashboard ---
 export default function DashboardPage() {
@@ -152,41 +257,113 @@ function DashboardContent() {
   const [modalData, setModalData] = useState<any>(null)
   const [modalTitle, setModalTitle] = useState("")
 
-  const handleChartItemClick = useCallback((data: any, title: string) => {
-    if (!data) return;
-    const payload = data.payload || data;
+const handleChartItemClick = useCallback((data: any, title: string) => {
+  if (!data) return;
+  const payload = data.payload || data;
 
-    const allowedKeys = [
-      "name", "value", "budget", "AMT", "SORDER", "DEPARTMENT", "UACS_DPT_DSC",
-      "AGENCY", "UACS_AGY_DSC", "PREXC_FPAP_ID", "PREXC_LEVEL", "DSC", "OPERUNIT",
-      "UACS_OPER_DSC", "UACS_REG_ID", "UACS_OPERDIV_ID", "UACS_DIV_DSC",
-      "FUNDCD", "UACS_FUNDSUBCAT_DSC", "UACS_EXP_CD", "UACS_EXP_DSC",
-      "UACS_SOBJ_CD", "UACS_SOBJ_DSC", "region"
-    ];
+  const allowedKeys = [
+    "name", "value", "budget", "AMT", "SORDER", "DEPARTMENT", "UACS_DPT_DSC",
+    "AGENCY", "UACS_AGY_DSC", "PREXC_FPAP_ID", "PREXC_LEVEL", "DSC", "OPERUNIT",
+    "UACS_OPER_DSC", "UACS_REG_ID", "UACS_OPERDIV_ID", "UACS_DIV_DSC",
+    "FUNDCD", "UACS_FUNDSUBCAT_DSC", "UACS_EXP_CD", "UACS_EXP_DSC",
+    "UACS_SOBJ_CD", "UACS_SOBJ_DSC", "region"
+  ];
 
-    const filtered: Record<string, string | number> = {}
-    Object.entries(payload).forEach(([key, value]) => {
-      if (allowedKeys.includes(key)) filtered[key] =
-        typeof value === "number" ? value : String(value)
-    })
+  const filtered: Record<string, string | number> = {}
+  Object.entries(payload).forEach(([key, value]) => {
+    if (allowedKeys.includes(key)) filtered[key] =
+      typeof value === "number" ? value : String(value)
+  })
 
-    if (Object.keys(filtered).length === 0) return
-    setModalData(filtered)
-    setModalTitle(title)
-    setShowModal(true)
-  }, [])
+  if (Object.keys(filtered).length === 0) return
+  setModalData(filtered)
+  setModalTitle(title)
+  setShowModal(true)
+}, [])
 
 
   useEffect(() => {
     setIsLoading(true)
 
+    // Simplified mock data logic for demonstration
+    const getAgencyExpenseBreakdown = (agencyName: string): Expense[] => {
+        if (agencyName === "DepEd") return [
+            { name: "Salaries & Wages", value: 60000, AMT: 60000 },
+            { name: "Maintenance", value: 30000, AMT: 30000 },
+            { name: "Capital Outlay", value: 10000, AMT: 10000 },
+        ];
+        if (agencyName === "DOH") return [
+            { name: "Salaries & Wages", value: 40000, AMT: 40000 },
+            { name: "Medical Supplies", value: 30000, AMT: 30000 },
+            { name: "Programs", value: 10000, AMT: 10000 },
+        ];
+        // Add more agency breakdowns as needed...
+        return [{ name: "General Expenses", value: 50000, AMT: 50000 }];
+    };
+
+
     const mockData: DashboardData = {
       sectors: [
-        { name: "Education", value: 150000 },
-        { name: "Health", value: 90000 },
-        { name: "Infrastructure", value: 120000 },
-        { name: "Defense", value: 50000 },
-        { name: "Social Welfare", value: 80000 }
+        {
+          name: "Education", value: 150000,
+          SORDER: 1, DEPARTMENT: "DepEd", UACS_DPT_DSC: "Department of Education",
+          AGENCY: "DepEd", UACS_AGY_DSC: "DepEd Main Agency",
+          PREXC_FPAP_ID: "FPAP001", PREXC_LEVEL: "National",
+          DSC: "DSC001", OPERUNIT: "OU001", UACS_OPER_DSC: "Education Operations",
+          UACS_REG_ID: "R01", UACS_OPERDIV_ID: "DIV01", UACS_DIV_DSC: "Division 1",
+          FUNDCD: "GF", UACS_FUNDSUBCAT_DSC: "General Fund",
+          UACS_EXP_CD: "EXP001", UACS_EXP_DSC: "Salaries",
+          UACS_SOBJ_CD: "SOBJ001", UACS_SOBJ_DSC: "Personnel Services",
+          AMT: 150000
+        } as Sector, // Added casting here just to suppress potential TS errors if types weren't fixed, but the interface fix is the real solution.
+        {
+          name: "Health", value: 90000,
+          SORDER: 2, DEPARTMENT: "DOH", UACS_DPT_DSC: "Department of Health",
+          AGENCY: "DOH", UACS_AGY_DSC: "DOH Main Agency",
+          PREXC_FPAP_ID: "FPAP002", PREXC_LEVEL: "National",
+          DSC: "DSC002", OPERUNIT: "OU002", UACS_OPER_DSC: "Health Operations",
+          UACS_REG_ID: "R02", UACS_OPERDIV_ID: "DIV02", UACS_DIV_DSC: "Division 2",
+          FUNDCD: "SF", UACS_FUNDSUBCAT_DSC: "Special Fund",
+          UACS_EXP_CD: "EXP002", UACS_EXP_DSC: "Medical Supplies",
+          UACS_SOBJ_CD: "SOBJ002", UACS_SOBJ_DSC: "MOOE",
+          AMT: 90000
+        } as Sector,
+        {
+          name: "Infrastructure", value: 120000,
+          SORDER: 3, DEPARTMENT: "DPWH", UACS_DPT_DSC: "Department of Public Works and Highways",
+          AGENCY: "DPWH", UACS_AGY_DSC: "DPWH Main Agency",
+          PREXC_FPAP_ID: "FPAP003", PREXC_LEVEL: "National",
+          DSC: "DSC003", OPERUNIT: "OU003", UACS_OPER_DSC: "Infra Operations",
+          UACS_REG_ID: "R03", UACS_OPERDIV_ID: "DIV03", UACS_DIV_DSC: "Division 3",
+          FUNDCD: "GF", UACS_FUNDSUBCAT_DSC: "General Fund",
+          UACS_EXP_CD: "EXP003", UACS_EXP_DSC: "Road Construction",
+          UACS_SOBJ_CD: "SOBJ003", UACS_SOBJ_DSC: "Capital Outlays",
+          AMT: 120000
+        } as Sector,
+        {
+          name: "Defense", value: 50000,
+          SORDER: 4, DEPARTMENT: "DND", UACS_DPT_DSC: "Department of National Defense",
+          AGENCY: "DND", UACS_AGY_DSC: "DND Main Agency",
+          PREXC_FPAP_ID: "FPAP004", PREXC_LEVEL: "National",
+          DSC: "DSC004", OPERUNIT: "OU004", UACS_OPER_DSC: "Defense Operations",
+          UACS_REG_ID: "R04", UACS_OPERDIV_ID: "DIV04", UACS_DIV_DSC: "Division 4",
+          FUNDCD: "SF", UACS_FUNDSUBCAT_DSC: "Special Fund",
+          UACS_EXP_CD: "EXP004", UACS_EXP_DSC: "Equipment",
+          UACS_SOBJ_CD: "SOBJ004", UACS_SOBJ_DSC: "Capital Outlays",
+          AMT: 50000
+        } as Sector,
+        {
+          name: "Social Welfare", value: 80000,
+          SORDER: 5, DEPARTMENT: "DSWD", UACS_DPT_DSC: "Department of Social Welfare and Development",
+          AGENCY: "DSWD", UACS_AGY_DSC: "DSWD Main Agency",
+          PREXC_FPAP_ID: "FPAP005", PREXC_LEVEL: "National",
+          DSC: "DSC005", OPERUNIT: "OU005", UACS_OPER_DSC: "Welfare Operations",
+          UACS_REG_ID: "R05", UACS_OPERDIV_ID: "DIV05", UACS_DIV_DSC: "Division 5",
+          FUNDCD: "GF", UACS_FUNDSUBCAT_DSC: "General Fund",
+          UACS_EXP_CD: "EXP005", UACS_EXP_DSC: "Grants",
+          UACS_SOBJ_CD: "SOBJ005", UACS_SOBJ_DSC: "MOOE",
+          AMT: 80000
+        } as Sector
       ],
       agencies: [
         {
@@ -200,7 +377,7 @@ function DashboardContent() {
           UACS_EXP_CD: "EXP001", UACS_EXP_DSC: "Salaries",
           UACS_SOBJ_CD: "SOBJ001", UACS_SOBJ_DSC: "Personnel Services",
           AMT: 100000
-        },
+        } as Agency,
         {
           name: "DOH", budget: 80000,
           SORDER: 2, DEPARTMENT: "DOH", UACS_DPT_DSC: "Department of Health",
@@ -212,7 +389,7 @@ function DashboardContent() {
           UACS_EXP_CD: "EXP002", UACS_EXP_DSC: "Medical Supplies",
           UACS_SOBJ_CD: "SOBJ002", UACS_SOBJ_DSC: "MOOE",
           AMT: 80000
-        },
+        } as Agency,
         {
           name: "DPWH", budget: 90000,
           SORDER: 3, DEPARTMENT: "DPWH", UACS_DPT_DSC: "Department of Public Works and Highways",
@@ -224,7 +401,7 @@ function DashboardContent() {
           UACS_EXP_CD: "EXP003", UACS_EXP_DSC: "Road Construction",
           UACS_SOBJ_CD: "SOBJ003", UACS_SOBJ_DSC: "Capital Outlays",
           AMT: 90000
-        },
+        } as Agency,
         {
           name: "DSWD", budget: 70000,
           SORDER: 4, DEPARTMENT: "DSWD", UACS_DPT_DSC: "Department of Social Welfare and Development",
@@ -236,7 +413,7 @@ function DashboardContent() {
           UACS_EXP_CD: "EXP005", UACS_EXP_DSC: "Grants",
           UACS_SOBJ_CD: "SOBJ005", UACS_SOBJ_DSC: "MOOE",
           AMT: 70000
-        },
+        } as Agency,
         {
           name: "DND", budget: 50000,
           SORDER: 5, DEPARTMENT: "DND", UACS_DPT_DSC: "Department of National Defense",
@@ -248,8 +425,9 @@ function DashboardContent() {
           UACS_EXP_CD: "EXP004", UACS_EXP_DSC: "Equipment",
           UACS_SOBJ_CD: "SOBJ004", UACS_SOBJ_DSC: "Capital Outlays",
           AMT: 50000
-        }
-      ],
+        } as Agency
+      ].sort((a, b) => b.budget - a.budget),
+
       expenses: [
         {
           name: "Personnel Services", value: 300000,
@@ -295,38 +473,61 @@ function DashboardContent() {
         { name: "Special Funds", value: 200000, AMT: 200000 }
       ],
       regions: [
-        { region: "NCR", value: 200000, AMT: 200000 },
-        { region: "Region IV-A", value: 150000, AMT: 150000 },
-        { region: "Region III", value: 120000, AMT: 120000 },
-        { region: "Region VII", value: 100000, AMT: 100000 }
+        { region: "NCR", value: 200000, AMT: 200000 } as Region,
+        { region: "Region IV-A", value: 150000, AMT: 150000 } as Region,
+        { region: "Region III", value: 120000, AMT: 120000 } as Region,
+        { region: "Region VII", value: 100000, AMT: 100000 } as Region
       ]
     }
 
     setDashboardData(mockData)
+    // Set a default selected agency to show the initial breakdown
+    if (mockData.agencies.length > 0) {
+        setSelectedAgency(mockData.agencies[0].name)
+    }
+
     setIsLoading(false)
   }, [])
 
   // --- Agency Detail ---
   useEffect(() => {
-    if (!dashboardData || !selectedAgency) return setAgencyDetail(null)
+    if (!dashboardData || !selectedAgency) {
+      setAgencyDetail(null)
+      return
+    }
 
-    // Simplified logic: Find an agency's data based on the selected agency name
-    const agencyData = dashboardData.agencies.find(a => a.name === selectedAgency)
-    if (!agencyData) return setAgencyDetail(null)
+    // This is where you would fetch or calculate the specific breakdown for selectedAgency.
+    // For this mock data, we'll use a simple function to simulate the data.
+    const getAgencyExpenseBreakdown = (agencyName: string): Expense[] => {
+        if (agencyName === "DepEd") return [
+            { name: "Salaries & Wages", value: 60000, AMT: 60000 },
+            { name: "Maintenance", value: 30000, AMT: 30000 },
+            { name: "Capital Outlay", value: 10000, AMT: 10000 },
+        ];
+        if (agencyName === "DOH") return [
+            { name: "Salaries & Wages", value: 40000, AMT: 40000 },
+            { name: "Medical Supplies", value: 30000, AMT: 30000 },
+            { name: "Programs", value: 10000, AMT: 10000 },
+        ];
+        if (agencyName === "DPWH") return [
+            { name: "Civil Works", value: 70000, AMT: 70000 },
+            { name: "Personnel", value: 20000, AMT: 20000 },
+        ];
+        // etc...
+        return [{ name: "General Expenses", value: 50000, AMT: 50000 }];
+    };
 
-    // Mock-up detailed expenses for the selected agency (for demonstration)
-    const mockExpenses: Expense[] = [
-      { name: "Salaries", value: agencyData.budget * 0.6, AMT: agencyData.budget * 0.6, UACS_EXP_DSC: "Salaries" },
-      { name: "Maintenance", value: agencyData.budget * 0.3, AMT: agencyData.budget * 0.3, UACS_EXP_DSC: "Maintenance and Other Operating Expenses" },
-      { name: "Capital", value: agencyData.budget * 0.1, AMT: agencyData.budget * 0.1, UACS_EXP_DSC: "Capital Outlays" }
-    ].filter(e => e.value > 0)
+    const agencyExpenses = getAgencyExpenseBreakdown(selectedAgency);
 
     setAgencyDetail({
-      agency: selectedAgency,
-      expenses: mockExpenses.length > 0 ? mockExpenses : [{ name: "No Detail", value: 1 }]
+        agency: selectedAgency,
+        expenses: agencyExpenses.length > 0 ? agencyExpenses : [{ name: "No Detail", value: 1, AMT: 1 }]
     })
   }, [selectedAgency, dashboardData])
 
+
+  const topAgencies = dashboardData?.agencies.slice(0, 5) || []
+  const bottomAgencies = dashboardData?.agencies.slice(-5) || []
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -436,7 +637,39 @@ function DashboardContent() {
                   </ResponsiveContainer>
                 </ChartPanel>
 
-                {/* Removed Top 5 and Bottom 5 Agencies Charts from Overview */}
+                <ChartPanel title="Top 5 Agencies" isLoading={isLoading} description={t("Click a bar for details.", "Pindutin ang bar para sa detalye.")}>
+                  <ResponsiveContainer width="100%" height={300}>
+                    <BarChart layout="vertical" data={topAgencies}>
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis type="number" />
+                      <YAxis type="category" dataKey="name" />
+                      <Tooltip content={<ChartTooltip />} />
+                      <Bar
+                        dataKey="budget"
+                        fill="#10B981"
+                        onClick={(data) => handleChartItemClick(data, `Agency: ${data.name}`)}
+                        cursor="pointer"
+                      />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </ChartPanel>
+
+                <ChartPanel title="Bottom 5 Agencies" isLoading={isLoading} description={t("Click a bar for details.", "Pindutin ang bar para sa detalye.")}>
+                  <ResponsiveContainer width="100%" height={300}>
+                    <BarChart layout="vertical" data={bottomAgencies}>
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis type="number" />
+                      <YAxis type="category" dataKey="name" />
+                      <Tooltip content={<ChartTooltip />} />
+                      <Bar
+                        dataKey="budget"
+                        fill="#EF4444"
+                        onClick={(data) => handleChartItemClick(data, `Agency: ${data.name}`)}
+                        cursor="pointer"
+                      />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </ChartPanel>
               </motion.div>
             </TabsContent>
 
@@ -447,15 +680,40 @@ function DashboardContent() {
               </ChartPanel>
             </TabsContent>
 
-            {/* Agencies (Now using the external component) */}
+            {/* Agencies */}
             <TabsContent value="agencies">
-              <ByAgency
-                agencies={dashboardData?.agencies || []}
-                selectedAgency={selectedAgency}
-                setSelectedAgency={setSelectedAgency}
-                handleChartItemClick={handleChartItemClick}
-                isLoading={isLoading}
-              />
+              <div className="space-y-8">
+                <ByAgency
+                  agencies={dashboardData?.agencies || []}
+                  selectedAgency={selectedAgency}
+                  setSelectedAgency={setSelectedAgency}
+                  handleChartItemClick={handleChartItemClick}
+                  isLoading={isLoading}
+                />
+
+                {agencyDetail && (
+                  <ChartPanel title={`${agencyDetail.agency} - Expense Breakdown`} isLoading={isLoading}>
+                    <ResponsiveContainer width="100%" height={300}>
+                      <PieChart>
+                        <Pie
+                          data={agencyDetail.expenses}
+                          dataKey="value"
+                          nameKey="name"
+                          cx="50%"
+                          cy="50%"
+                          outerRadius={100}
+                          label={({ name, percent }) => `${name}: ${(Number(percent) * 100).toFixed(1)}%`}
+                          onClick={(data) => handleChartItemClick(data, `Expense: ${data.name}`)}
+                          cursor="pointer"
+                        >
+                          {agencyDetail.expenses.map((e, i) => <Cell key={i} fill={`hsl(${i * 50},60%,50%)`} />)}
+                        </Pie>
+                        <Tooltip content={<ChartTooltip />} />
+                      </PieChart>
+                    </ResponsiveContainer>
+                  </ChartPanel>
+                )}
+              </div>
             </TabsContent>
           </Tabs>
         </section>
