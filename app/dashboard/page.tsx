@@ -82,6 +82,14 @@ interface DashboardData {
   regions: Region[]
 }
 
+// --- Helper for formatting monetary values ---
+const formatCurrency = (value: number | string | undefined | null) => {
+  if (value === undefined || value === null) return "₱0";
+  const num = Number(value);
+  if (isNaN(num)) return String(value);
+  return `₱${num.toLocaleString('en-PH', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`;
+};
+
 // --- Modal Component ---
 interface DataModalProps {
   title: string
@@ -98,7 +106,10 @@ const DataModal = ({ title, data, isOpen, onClose }: DataModalProps) => {
       .map(([key, value]) => {
         if (['cx', 'cy', 'x', 'y', 'z', 'depth', 'index', 'fill'].includes(key)) return null
         let displayValue = value
-        if (key === 'value' || key === 'budget' || key === "AMT") displayValue = `₱${Number(value).toLocaleString()}`
+        // Add Peso sign and format for monetary values
+        if (key === 'value' || key === 'budget' || key === "AMT") {
+          displayValue = formatCurrency(value as number)
+        }
         return { key: key.charAt(0).toUpperCase() + key.slice(1), value: displayValue }
       })
       .filter((item): item is { key: string; value: unknown } => item !== null)
@@ -147,7 +158,10 @@ const ChartTooltip = ({ active, payload }: ChartTooltipProps) => {
     .filter(([k]) => allowedKeys.includes(k))
     .map(([k, v]) => {
       let val = v
-      if (k === "value" || k === "budget" || k === "AMT") val = `₱${Number(v).toLocaleString()}`
+      // Add Peso sign and format for monetary values
+      if (k === "value" || k === "budget" || k === "AMT") {
+        val = formatCurrency(v as number)
+      }
       return { key: k, value: val }
     })
 
@@ -211,7 +225,8 @@ const ByAgency = ({ agencies, selectedAgency, setSelectedAgency, handleChartItem
           >
             <CartesianGrid strokeDasharray="3 3" />
             <XAxis dataKey="name" angle={-45} textAnchor="end" height={60} interval={0} />
-            <YAxis tickFormatter={v => `₱${Number(v).toLocaleString()}`} />
+            {/* Added Peso sign to YAxis tick formatter */}
+            <YAxis tickFormatter={v => formatCurrency(Number(v))} /> 
             <Tooltip content={<ChartTooltip />} />
             <Bar
               dataKey="budget"
@@ -581,7 +596,8 @@ const handleChartItemClick = useCallback((data: any, title: string) => {
                     <BarChart data={dashboardData?.sectors}>
                       <CartesianGrid strokeDasharray="3 3" />
                       <XAxis dataKey="name" />
-                      <YAxis tickFormatter={v => `${v / 1000}K`} />
+                      {/* Updated YAxis to include Peso sign with the K abbreviation */}
+                      <YAxis tickFormatter={v => `₱${Number(v) / 1000}K`} /> 
                       <Tooltip content={<ChartTooltip />} />
                       <Bar
                         dataKey="value"
@@ -641,7 +657,8 @@ const handleChartItemClick = useCallback((data: any, title: string) => {
                   <ResponsiveContainer width="100%" height={300}>
                     <BarChart layout="vertical" data={topAgencies}>
                       <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis type="number" />
+                      {/* The XAxis is for the numerical budget value here */}
+                      <XAxis type="number" tickFormatter={v => formatCurrency(Number(v))} /> 
                       <YAxis type="category" dataKey="name" />
                       <Tooltip content={<ChartTooltip />} />
                       <Bar
@@ -658,7 +675,8 @@ const handleChartItemClick = useCallback((data: any, title: string) => {
                   <ResponsiveContainer width="100%" height={300}>
                     <BarChart layout="vertical" data={bottomAgencies}>
                       <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis type="number" />
+                      {/* The XAxis is for the numerical budget value here */}
+                      <XAxis type="number" tickFormatter={v => formatCurrency(Number(v))} /> 
                       <YAxis type="category" dataKey="name" />
                       <Tooltip content={<ChartTooltip />} />
                       <Bar

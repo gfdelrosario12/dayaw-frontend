@@ -3,6 +3,7 @@
 import { FC, useState, useCallback } from "react"
 import { ComposableMap, Geographies, Geography } from "react-simple-maps"
 import { scaleLinear } from "d3-scale"
+// Assuming PHL.geo.json is correctly available
 import phRegionsGeo from "./PHL.geo.json"
 
 interface Region {
@@ -31,16 +32,24 @@ export const MapView: FC<MapViewProps> = ({ regions }) => {
   const handleClick = useCallback(
     (geo: any) => {
       const name = geo.properties.NAME_1 || geo.properties.name
-      const value = regionValueMap[name] || 0
-      setClickedRegion({ region: name, value })
+
+      if (clickedRegion?.region === name) {
+        // Toggle off if the same region is clicked again
+        setClickedRegion(null)
+      } else {
+        // Set new clicked region
+        const value = regionValueMap[name] || 0
+        setClickedRegion({ region: name, value })
+        setHoveredRegion(null)
+      }
     },
-    [regionValueMap]
+    [regionValueMap, clickedRegion]
   )
 
   return (
     <div className="relative w-full h-full flex justify-center items-center">
       {/* Hover tooltip */}
-      {hoveredRegion && (
+      {hoveredRegion && !clickedRegion && (
         <div className="absolute z-20 px-2 py-1 bg-white/80 border border-gray-300 rounded text-sm pointer-events-none backdrop-blur-sm">
           <span className="font-medium">{hoveredRegion}</span>: ₱
           {regionValueMap[hoveredRegion]?.toLocaleString() || 0}M
@@ -58,14 +67,16 @@ export const MapView: FC<MapViewProps> = ({ regions }) => {
             geographies.map(geo => {
               const name = geo.properties.NAME_1 || geo.properties.name
               const value = regionValueMap[name] || 0
-              const isSelected = clickedRegion?.region === name
+              const isSelected = clickedRegion?.region === name // <--- Highlight control
+
               return (
                 <Geography
                   key={geo.rsmKey}
                   geography={geo}
                   fill={colorScale(value)}
-                  stroke={isSelected ? "#facc15" : "#fff"}
-                  strokeWidth={isSelected ? 2 : 1}
+                  // The literal highlighting happens here:
+                  stroke={isSelected ? "#facc15" : "#fff"} // 🌟 Highlight color (Yellow)
+                  strokeWidth={isSelected ? 2 : 1}        // 🌟 Thicker line
                   onMouseEnter={() => setHoveredRegion(name)}
                   onMouseLeave={() => setHoveredRegion(null)}
                   onClick={() => handleClick(geo)}
@@ -83,12 +94,18 @@ export const MapView: FC<MapViewProps> = ({ regions }) => {
 
       {/* Clicked region info panel */}
       {clickedRegion && (
-        <div className="absolute bottom-4 left-4 p-3 bg-white/80 border border-gray-300 rounded text-sm backdrop-blur-sm">
+        <div className="absolute bottom-4 left-4 p-3 bg-white/80 border border-gray-300 rounded text-sm backdrop-blur-sm shadow-lg">
           <h3 className="font-bold text-blue-700 mb-1">{clickedRegion.region}</h3>
           <p className="text-gray-800">
             <span className="font-medium">Budget:</span> ₱
             {clickedRegion.value.toLocaleString()}M
           </p>
+          <button
+            onClick={() => setClickedRegion(null)}
+            className="mt-2 text-xs text-blue-500 hover:text-blue-700 font-medium"
+          >
+            Clear Selection
+          </button>
         </div>
       )}
     </div>

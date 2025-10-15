@@ -6,63 +6,100 @@ import { StageCard } from "@/components/stage-card"
 import { Button } from "@/components/ui/button"
 import { LanguageProvider, useLanguage } from "@/context/language-context"
 import { useEducation } from "@/hooks/use-education"
-import { MessageSquare, ArrowRight } from "lucide-react"
+import { MessageSquare, ArrowRight, DollarSign, Target, BookOpen, Users, Landmark, Gavel, FileCheck, ClipboardList } from "lucide-react"
 import Link from "next/link"
 import { motion } from "framer-motion"
-import { useState } from "react"
+import { useState, useRef } from "react"
+import Piso from "../../public/piso.png"
 
 function EducationContent() {
   const { t, language } = useLanguage()
   const { data, isLoading } = useEducation()
   const [activeStage, setActiveStage] = useState<number>(0)
+  // Ref for the Stage Cards Container
+  const stageCardsRef = useRef<HTMLDivElement>(null)
 
-  // Fallback data for demonstration
+  // Full four-phase budget cycle for display
   const stages = data || [
     {
       id: "1",
-      title: "NEP - National Expenditure Program",
-      titleFil: "NEP - National Expenditure Program",
+      title: t("Budget Preparation (NEP)", "Paghanda ng Badyet (NEP)"),
+      titleFil: "Paghanda ng Badyet (NEP)",
       description:
-        "The President submits the proposed budget to Congress. This includes detailed spending plans for all government agencies and programs for the upcoming fiscal year.",
+        "The DBM issues the Budget Call. Government agencies, in consultation with stakeholders, submit proposals. The DBM consolidates these into the **National Expenditure Program (NEP)** for the President's approval and submission to Congress.",
       descriptionFil:
-        "Isinusumite ng Pangulo ang iminungkahing badyet sa Kongreso. Kasama dito ang detalyadong plano ng paggastos para sa lahat ng ahensya at programa ng gobyerno para sa susunod na taon.",
+        "Ang DBM ay naglalabas ng Budget Call. Ang mga ahensya ng gobyerno, sa konsultasyon sa mga stakeholder, ay nagsumite ng mga panukala. Pinagsama-sama ito ng DBM sa **National Expenditure Program (NEP)** para sa pag-apruba ng Pangulo at pagsusumite sa Kongreso.",
       order: 1,
       icon: "file-text",
     },
     {
       id: "2",
-      title: "GAB - General Appropriations Bill",
-      titleFil: "GAB - General Appropriations Bill",
+      title: t("Budget Legislation (GAB)", "Paggawa ng Batas (GAB)"),
+      titleFil: "Paggawa ng Batas (GAB)",
       description:
-        "Congress reviews, debates, and modifies the proposed budget. Both the House of Representatives and Senate conduct hearings and deliberations before passing their versions.",
+        "The **House Committee on Appropriations** conducts initial review. The **Senate Committee on Finance** conducts its own. Differences are reconciled in the **Bicameral Conference Committee** before the final **General Appropriations Bill (GAB)** is sent to the President.",
       descriptionFil:
-        "Sinusuri, pinagdedebatehan, at binabago ng Kongreso ang iminungkahing badyet. Ang Kapulungan ng mga Kinatawan at Senado ay nagsasagawa ng mga pagdinig at deliberasyon bago ipasa ang kanilang mga bersyon.",
+        "Ang **House Committee on Appropriations** ang nagsasagawa ng unang pagsusuri. Ang **Senate Committee on Finance** ay nagsasagawa ng sarili nitong. Inaayos ang mga pagkakaiba sa **Bicameral Conference Committee** bago ipadala ang huling **General Appropriations Bill (GAB)** sa Pangulo.",
       order: 2,
       icon: "users",
     },
     {
       id: "3",
-      title: "GAA - General Appropriations Act",
-      titleFil: "GAA - General Appropriations Act",
+      title: t("Budget Execution (GAA)", "Pagpapatupad ng Badyet (GAA)"),
+      titleFil: "Pagpapatupad ng Badyet (GAA)",
       description:
-        "After reconciliation between House and Senate versions, the final budget is signed into law by the President. This becomes the official budget for the fiscal year.",
+        "The President signs the GAB into the **General Appropriations Act (GAA)**, or vetoes specific line-items. The DBM then issues the Allotments and Notice of Cash Allocations (NCAs) that authorize agencies to incur obligations and spend the funds.",
       descriptionFil:
-        "Pagkatapos ng reconciliation sa pagitan ng bersyon ng Kapulungan at Senado, ang huling badyet ay nilagdaan ng Pangulo bilang batas. Ito ang opisyal na badyet para sa taon.",
+        "Nilalagdaan ng Pangulo ang GAB bilang **General Appropriations Act (GAA)**, o bina-veto ang ilang line-items. Naglalabas ang DBM ng mga Allotment at Notice of Cash Allocations (NCAs) na nagpapahintulot sa mga ahensya na gumastos ng pondo.",
       order: 3,
       icon: "check-circle",
     },
     {
       id: "4",
-      title: "Disbursement - Fund Release",
-      titleFil: "Paglalabas - Paglabas ng Pondo",
+      title: t("Budget Accountability", "Pananagutan sa Badyet"),
+      titleFil: "Pananagutan sa Badyet",
       description:
-        "Government agencies receive and spend their allocated budgets according to approved programs and projects. This stage involves actual implementation and monitoring of expenditures.",
+        "Government agencies submit accountability reports to show how funds were utilized against physical and financial performance targets. The **Commission on Audit (COA)** examines these reports to ensure legality and efficiency.",
       descriptionFil:
-        "Tumatanggap at gumagastos ang mga ahensya ng gobyerno ng kanilang inilaan na badyet ayon sa mga aprubadong programa at proyekto. Kasama sa yugtong ito ang aktwal na pagpapatupad at pagsubaybay ng mga gastusin.",
+        "Nagsusumite ang mga ahensya ng gobyerno ng mga ulat ng pananagutan upang ipakita kung paano ginamit ang mga pondo laban sa mga target sa pisikal at pinansyal na pagganap. Sinusuri ng **Commission on Audit (COA)** ang mga ulat na ito upang matiyak ang legalidad at kahusayan.",
       order: 4,
       icon: "trending-up",
     },
   ]
+
+  // Handler for stage click
+  const handleStageClick = (index: number) => {
+    setActiveStage(index)
+    // Scroll to the top of the stage cards container
+    if (stageCardsRef.current) {
+      stageCardsRef.current.scrollIntoView({ behavior: "smooth", block: "start" })
+    }
+  }
+
+  // Current key budget officials (Using titles from the search results, caveated with note)
+  const currentOfficials = [
+    {
+      name: t("The President", "Ang Pangulo"),
+      role: t("Chief Executive; Final authority on the GAA (Veto Power)", "Punong Ehekutibo; Huling awtoridad sa GAA (Veto Power)"),
+      icon: Landmark,
+    },
+    {
+      name: t("DBM Secretary", "Kalihim ng DBM"),
+      role: t("Leads budget preparation and execution", "Nangunguna sa paghanda at pagpapatupad ng badyet"),
+      icon: Users,
+    },
+    {
+      name: t("Speaker of the House (Rep. Bojie Dy)", "Ispiker ng Kapulungan (Rep. Bojie Dy)"),
+      role: t("Presides over the House; GAB starts here", "Namumuno sa Kapulungan; Dito nagsisimula ang GAB"),
+      icon: Gavel,
+    },
+    {
+      name: t("Senate President (Sen. Tito Sotto III)", "Pangulo ng Senado (Sen. Tito Sotto III)"),
+      role: t("Presides over the Senate budget review", "Namumuno sa pagsusuri ng badyet ng Senado"),
+      icon: Gavel,
+    },
+  ];
+
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -70,49 +107,52 @@ function EducationContent() {
 
       <main className="flex-1">
         {/* Hero Section */}
-        <section className="border-b border-border bg-gradient-to-b from-background to-card">
-          <div className="container mx-auto px-4 py-16 md:py-24">
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5 }}
-              className="mx-auto max-w-3xl text-center"
-            >
-              <h1 className="text-4xl font-bold tracking-tight text-foreground md:text-5xl text-balance">
-                {t("How the Philippine Budget Works", "Paano Gumagana ang Badyet ng Pilipinas")}
-              </h1>
-              <p className="mt-6 text-lg text-muted-foreground leading-relaxed">
-                {t(
-                  "Understanding the budget process from proposal to implementation. Learn how your tax money is planned, approved, and spent.",
-                  "Pag-unawa sa proseso ng badyet mula sa panukala hanggang sa pagpapatupad. Alamin kung paano pinaplano, inaprubahan, at ginagastos ang iyong buwis.",
-                )}
-              </p>
-            </motion.div>
-          </div>
-        </section>
+          <section className="border-b border-border bg-gradient-to-b from-background to-card">
+            <div className="container mx-auto px-4 py-16 md:py-24">
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5 }}
+                className="mx-auto max-w-3xl text-center"
+              >
+                <h1 className="text-4xl font-bold tracking-tight text-foreground md:text-5xl text-balance">
+                  {t("How the Philippine Budget Works", "Paano Gumagana ang Badyet ng Pilipinas")}
+                </h1>
+                <p className="mt-6 text-lg text-muted-foreground leading-relaxed">
+                  {t(
+                    "Understanding the complete budget process, including the critical roles of Congress and the Executive branch.",
+                    "Pag-unawa sa kumpletong proseso ng badyet, kasama ang mahalagang papel ng Kongreso at sangay ng Ehekutibo.",
+                  )}
+                </p>
+              </motion.div>
+            </div>
+          </section>
 
         {/* Timeline Section */}
         <section className="container mx-auto px-4 py-16">
           <div className="mx-auto max-w-4xl">
             <div className="mb-12 text-center">
               <h2 className="text-2xl font-bold text-foreground mb-3">
-                {t("The Budget Cycle", "Ang Siklo ng Badyet")}
+                {t("The Four Phases of the Budget Cycle", "Ang Apat na Yugto ng Siklo ng Badyet")}
               </h2>
               <p className="text-sm text-muted-foreground">
                 {t(
-                  "Follow the four main stages of the Philippine budget process",
-                  "Sundin ang apat na pangunahing yugto ng proseso ng badyet ng Pilipinas",
+                  "From Planning to Accountability: The full journey of the national budget.",
+                  "Mula sa Pagpaplano hanggang sa Pananagutan: Ang kumpletong paglalakbay ng pambansang badyet.",
                 )}
               </p>
             </div>
 
-            {/* Progress Indicator */}
-            <div className="mb-12 flex items-center justify-between">
+            {/* Progress Indicator - Centered the bar */}
+            {/* START OF MODIFIED BLOCK */}
+            <div className="mb-12 flex items-center justify-center">
+              <div className="flex items-center justify-center overflow-x-auto p-2"> {/* Added responsive wrapper for safety */}
               {stages.map((stage, index) => (
-                <div key={stage.id} className="flex flex-1 items-center">
+                <div key={stage.id} className="flex items-center">
                   <button
-                    onClick={() => setActiveStage(index)}
-                    className={`flex h-10 w-10 items-center justify-center rounded-full border-2 transition-all ${
+                    // Use handleStageClick for scroll functionality
+                    onClick={() => handleStageClick(index)}
+                    className={`flex h-8 w-8 sm:h-10 sm:w-10 items-center justify-center rounded-full border-2 transition-all shrink-0 text-sm sm:text-base ${ // SHRINKED SIZE FOR MOBILE (h-8 w-8)
                       activeStage === index
                         ? "border-accent bg-accent text-accent-foreground"
                         : "border-border bg-card text-muted-foreground hover:border-accent/50"
@@ -121,16 +161,19 @@ function EducationContent() {
                     {index + 1}
                   </button>
                   {index < stages.length - 1 && (
+                    // Made the connecting line fill the space between buttons
                     <div
-                      className={`h-0.5 flex-1 transition-colors ${activeStage > index ? "bg-accent" : "bg-border"}`}
+                      // SHRINKED LINE WIDTH FOR MOBILE (w-8)
+                      className={`h-0.5 w-8 sm:w-16 transition-colors mx-1 sm:mx-2 ${activeStage > index ? "bg-accent" : "bg-border"}`}
                     />
                   )}
                 </div>
               ))}
+              </div>
             </div>
-
-            {/* Stage Cards */}
-            <div className="space-y-6">
+            
+            {/* Stage Cards - Added ref for scrolling */}
+            <div ref={stageCardsRef} className="space-y-6">
               {stages.map((stage, index) => (
                 <StageCard
                   key={stage.id}
@@ -141,6 +184,168 @@ function EducationContent() {
                   isLoading={isLoading}
                 />
               ))}
+            </div>
+          </div>
+        </section>
+
+        {/* Deeper Dive: Government Structure and Budget Details */}
+        <section className="border-t border-b border-border bg-background py-16">
+          <div className="container mx-auto px-4">
+            <div className="mx-auto max-w-4xl">
+              <h2 className="text-2xl font-bold text-foreground mb-10 text-center">
+                {t("Deeper Dive: Government Structure and Budget Details", "Mas Malalim na Pagsusuri: Istraktura ng Gobyerno at Detalye ng Badyet")}
+              </h2>
+
+              <div className="space-y-12">
+                
+                {/* 1. Congressional Committees Concerned on Budget */}
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.5 }}
+                  viewport={{ once: true, amount: 0.3 }}
+                  className="rounded-lg border border-border bg-card p-6 md:p-8"
+                >
+                  <h3 className="text-xl font-bold text-accent mb-3 flex items-center">
+                    <ClipboardList className="h-5 w-5 mr-2" />
+                    {t("Congressional Committees Concerned on Budget", "Mga Komite ng Kongreso na May Kinalaman sa Badyet")}
+                  </h3>
+                  <div className="grid gap-4 md:grid-cols-2">
+                    <div>
+                      <h4 className="font-semibold text-foreground mb-1">{t("House of Representatives:", "Kapulungan ng mga Kinatawan:")}</h4>
+                      <p className="text-muted-foreground text-sm">
+                        <strong className="text-foreground">Committee on Appropriations:</strong> {t("The primary committee that reviews the NEP, conducts hearings, and recommends the House version of the General Appropriations Bill (GAB).", "Ang pangunahing komite na sumusuri sa NEP, nagsasagawa ng mga pagdinig, at nagrerekomenda ng bersyon ng Kapulungan ng General Appropriations Bill (GAB).")}
+                      </p>
+                    </div>
+                    <div>
+                      <h4 className="font-semibold text-foreground mb-1">{t("Senate:", "Senado:")}</h4>
+                      <p className="text-muted-foreground text-sm">
+                        <strong className="text-foreground">Committee on Finance:</strong> {t("This committee reviews the GAB passed by the House, conducts separate hearings, and proposes amendments before the bill is debated in the Senate plenary.", "Sinusuri ng komiteng ito ang GAB na ipinasa ng Kapulungan, nagsasagawa ng hiwalay na pagdinig, at nagmumungkahi ng mga pagbabago bago talakayin ang panukalang batas sa plenaryo ng Senado.")}
+                      </p>
+                    </div>
+                  </div>
+                </motion.div>
+
+                {/* 2. Agency vs Government */}
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.5 }}
+                  viewport={{ once: true, amount: 0.3 }}
+                  className="rounded-lg border border-border bg-card p-6 md:p-8"
+                >
+                  <h3 className="text-xl font-bold text-accent mb-3 flex items-center">
+                    <BookOpen className="h-5 w-5 mr-2" />
+                    {t("Agency vs. Government (Budget Definition)", "Ahensya vs. Gobyerno (Depinisyon sa Badyet)")}
+                  </h3>
+                  <p className="text-muted-foreground leading-relaxed text-sm mb-4">
+                    {t(
+                      "In budget parlance, **'Government'** refers to the entire national entity, including all three branches (Executive, Legislative, Judicial) and all constitutional offices.",
+                      "Sa pananalita ng badyet, ang **'Gobyerno'** ay tumutukoy sa buong pambansang entidad, kasama ang lahat ng tatlong sangay (Ehekutibo, Lehislatibo, Hudisyal) at lahat ng opisina ng konstitusyon.",
+                    )}
+                  </p>
+                  <p className="text-muted-foreground leading-relaxed text-sm">
+                    {t(
+                      "An **'Agency'** is a specific department, bureau, office, or unit within the Government (e.g., Department of Health, DPWH, etc.) that receives a specific budgetary allocation under the GAA to carry out its mandated functions.",
+                      "Ang **'Ahensya'** ay isang tiyak na kagawaran, kawanihan, opisina, o yunit sa loob ng Gobyerno (hal. DOH, DPWH, atbp.) na tumatanggap ng partikular na alokasyon sa badyet sa ilalim ng GAA upang isagawa ang mga itinalagang tungkulin nito.",
+                    )}
+                  </p>
+                </motion.div>
+
+                {/* 3. Bicameral Conference Committee and GAA Veto */}
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.5 }}
+                  viewport={{ once: true, amount: 0.3 }}
+                  className="rounded-lg border border-border bg-card p-6 md:p-8"
+                >
+                  <h3 className="text-xl font-bold text-accent mb-3 flex items-center">
+                    <Gavel className="h-5 w-5 mr-2" />
+                    {t("Bicameral Conference and Presidential Veto", "Bicameral Conference at Presidential Veto")}
+                  </h3>
+                  <ul className="space-y-3 text-muted-foreground text-sm">
+                    <li>
+                        <strong className="text-foreground">{t("Bicameral Conference Committee (Bicam):", "Bicameral Conference Committee (Bicam):")}</strong> {t("Comprised of members from the House and Senate, this committee meets to reconcile all differences between the two chambers' versions of the GAB. They produce the final, single legislative version.", "Binubuo ng mga miyembro mula sa Kapulungan at Senado, ang komite na ito ay nagpupulong upang ayusin ang lahat ng pagkakaiba sa pagitan ng mga bersyon ng GAB ng dalawang kapulungan. Sila ang gumagawa ng huling, nag-iisang bersyon ng batas.")}
+                    </li>
+                    <li>
+                        <strong className="text-foreground">{t("Presidential Line-Item Veto:", "Presidential Line-Item Veto:")}</strong> {t("Unlike regular laws, the President can veto specific provisions (line items) in the GAB without vetoing the entire bill. These vetoed items are called 'Veto Messages' and are sent back to Congress.", "Hindi tulad ng ordinaryong batas, maaaring i-veto ng Pangulo ang mga tiyak na probisyon (line items) sa GAB nang hindi bina-veto ang buong panukalang batas. Ang mga item na ito ay tinatawag na 'Veto Messages' at ibinabalik sa Kongreso.")}
+                    </li>
+                  </ul>
+                </motion.div>
+
+                {/* 4. GAA Headers and ETDF */}
+                <div className="grid gap-8 md:grid-cols-2">
+                    {/* GAA Headers */}
+                    <motion.div
+                        initial={{ opacity: 0, y: 20 }}
+                        whileInView={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.5, delay: 0.1 }}
+                        viewport={{ once: true, amount: 0.3 }}
+                        className="rounded-lg border border-border bg-card p-6"
+                    >
+                        <h4 className="text-lg font-bold text-foreground mb-3 flex items-center"><FileCheck className="h-4 w-4 mr-2" /> {t("GAA Structure: Headers", "Istraktura ng GAA: Mga Ulo (Headers)")}</h4>
+                        <ul className="space-y-2 text-sm text-muted-foreground">
+                            <li><strong className="text-foreground">Tier 1: Agency/Department Level (The 'Budget')</strong> - {t("Broad allocation for a specific department (e.g., Department of Education).", "Malawak na alokasyon para sa isang partikular na kagawaran (hal. Kagawaran ng Edukasyon).")}</li>
+                            <li><strong className="text-foreground">Tier 2: Program Level</strong> - {t("Allocation for a major program or project within the agency (e.g., Basic Education Program).", "Alokasyon para sa isang pangunahing programa o proyekto sa loob ng ahensya (hal. Programa sa Batayang Edukasyon).")}</li>
+                            <li><strong className="text-foreground">Tier 3: Project/Line Item Level</strong> - {t("The most detailed level, specifying the intended purpose of the spending (e.g., Maintenance and Other Operating Expenses for a specific school).", "Ang pinakadetalyadong antas, na tumutukoy sa layunin ng paggastos (hal. Maintenance and Other Operating Expenses para sa isang tiyak na paaralan).")}</li>
+                        </ul>
+                    </motion.div>
+
+                    {/* ETDF */}
+                    <motion.div
+                        initial={{ opacity: 0, y: 20 }}
+                        whileInView={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.5, delay: 0.2 }}
+                        viewport={{ once: true, amount: 0.3 }}
+                        className="rounded-lg border border-border bg-card p-6"
+                    >
+                        <h4 className="text-lg font-bold text-foreground mb-3 flex items-center"><DollarSign className="h-4 w-4 mr-2" /> {t("ETDF (Earmarked Funds)", "ETDF (Earmarked Funds)")}</h4>
+                        <p className="text-sm text-muted-foreground leading-relaxed mb-2">
+                            {t(
+                                "**Earmarked Funds (or Special Funds)** are revenues collected for a specific purpose, meaning the law requires them to be spent only on that designated program or project.",
+                                "Ang **Earmarked Funds (o Special Funds)** ay mga kita na kinolekta para sa isang tiyak na layunin, na nangangahulugang iniaatas ng batas na gastusin lamang ang mga ito sa itinalagang programa o proyekto.",
+                            )}
+                        </p>
+                        <p className="text-sm text-muted-foreground leading-relaxed">
+                            {t(
+                                "They are distinct from General Funds, which can be allocated to any government function. Examples include taxes collected for road use or specific trust funds.",
+                                "Iba sila sa General Funds, na maaaring ilaan sa anumang tungkulin ng gobyerno. Kasama sa mga halimbawa ang mga buwis na kinokolekta para sa paggamit ng kalsada o tiyak na trust funds.",
+                            )}
+                        </p>
+                    </motion.div>
+                </div>
+
+                {/* 5. Key Officials */}
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.5 }}
+                  viewport={{ once: true, amount: 0.3 }}
+                  className="rounded-lg border border-border bg-card p-6 md:p-8"
+                >
+                  <h3 className="text-xl font-bold text-accent mb-4 flex items-center">
+                    <Users className="h-5 w-5 mr-2" />
+                    {t("Key Officials Tasked with the Budget", "Mga Pangunahing Opisyal na Naka-atas sa Badyet")}
+                  </h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {currentOfficials.map((official, index) => (
+                        <div key={index} className="flex items-start p-3 bg-background rounded-md border border-dashed border-border/70">
+                            <official.icon className="h-5 w-5 text-primary/70 mt-1 mr-3 shrink-0" />
+                            <div>
+                                <p className="font-semibold text-foreground text-sm">{official.name}</p>
+                                <p className="text-xs text-muted-foreground">{official.role}</p>
+                            </div>
+                        </div>
+                    ))}
+                    <div className="md:col-span-2">
+                         <p className="text-xs italic text-muted-foreground mt-4">
+                            * {t("Note: Congressional leadership positions and the DBM Secretary change with the current administration and internal elections.", "* Paalala: Ang mga posisyon sa pamunuan ng Kongreso at ang Kalihim ng DBM ay nagbabago depende sa kasalukuyang administrasyon at internal na halalan.")}
+                        </p>
+                    </div>
+                  </div>
+                </motion.div>
+              </div>
             </div>
           </div>
         </section>
@@ -175,6 +380,70 @@ function EducationContent() {
                     <ArrowRight className="ml-2 h-5 w-5" />
                   </Link>
                 </Button>
+              </motion.div>
+            </div>
+          </div>
+        </section>
+
+        {/* Supporting Info: Budget Sources and Allocation */}
+        <section className="container mx-auto px-4 py-16">
+          <div className="mx-auto max-w-4xl">
+            <h2 className="text-2xl font-bold text-foreground mb-8 text-center">
+              {t("Sources of the Budget and Priority Areas", "Pinagmulan ng Badyet at Mga Prayoridad na Lugar")}
+            </h2>
+            <div className="grid gap-8 md:grid-cols-2">
+              {/* Budget Sources Card */}
+              <motion.div
+                initial={{ opacity: 0, x: -20 }}
+                whileInView={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.5 }}
+                viewport={{ once: true, amount: 0.3 }}
+                className="rounded-xl border border-border bg-background p-8 shadow-lg"
+              >
+                <div className="flex items-center mb-4">
+                  <DollarSign className="h-6 w-6 text-green-500 mr-3" />
+                  <h3 className="text-xl font-semibold text-foreground">
+                    {t("Where Does the Money Come From?", "Saan Nagmumula ang Pera?")}
+                  </h3>
+                </div>
+                <ul className="space-y-3 text-muted-foreground text-sm">
+                  <li>
+                    <strong className="text-foreground">Tax Revenues:</strong> {t("Income taxes, Value-Added Tax (VAT), and excise taxes are the primary source.", "Pangunahing pinagkukunan ang mga buwis sa kita, Value-Added Tax (VAT), at buwis sa kalakal.")}
+                  </li>
+                  <li>
+                    <strong className="text-foreground">Non-Tax Revenues:</strong> {t("Fees and charges from government services, and income from government corporations.", "Mga bayarin at singil mula sa serbisyo ng gobyerno, at kita mula sa mga korporasyon ng gobyerno.")}
+                  </li>
+                  <li>
+                    <strong className="text-foreground">Borrowings:</strong> {t("Domestic and foreign loans used to bridge the gap between revenue and expenditures.", "Mga lokal at dayuhang pautang na ginagamit upang punan ang puwang sa pagitan ng kita at gastusin.")}
+                  </li>
+                </ul>
+              </motion.div>
+
+              {/* Priority Areas Card */}
+              <motion.div
+                initial={{ opacity: 0, x: 20 }}
+                whileInView={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.5 }}
+                viewport={{ once: true, amount: 0.3 }}
+                className="rounded-xl border border-border bg-background p-8 shadow-lg"
+              >
+                <div className="flex items-center mb-4">
+                  <Target className="h-6 w-6 text-blue-500 mr-3" />
+                  <h3 className="text-xl font-semibold text-foreground">
+                    {t("What Are the Priority Areas?", "Ano ang mga Prayoridad na Lugar?")}
+                  </h3>
+                </div>
+                <ul className="space-y-3 text-muted-foreground text-sm">
+                  <li>
+                    <strong className="text-foreground">Social Services:</strong> {t("Education, Healthcare, and Social Welfare programs receive the largest allocation.", "Ang Edukasyon, Pangangalaga sa Kalusugan, at mga programa sa Social Welfare ang tumatanggap ng pinakamalaking alokasyon.")}
+                  </li>
+                  <li>
+                    <strong className="text-foreground">Economic Services:</strong> {t("Infrastructure development, agriculture, and trade support to boost economic growth.", "Pagpapaunlad ng imprastraktura, agrikultura, at suporta sa kalakalan upang mapalakas ang paglago ng ekonomiya.")}
+                  </li>
+                  <li>
+                    <strong className="text-foreground">Debt Service:</strong> {t("Payment of interest and principal on the national debt.", "Pagbabayad ng interes at prinsipal sa pambansang utang.")}
+                  </li>
+                </ul>
               </motion.div>
             </div>
           </div>

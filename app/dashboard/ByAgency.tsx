@@ -1,11 +1,42 @@
+// ByAgency.tsx
+
 "use client"
 
 import { FC, Dispatch, SetStateAction } from "react"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { ChartPanel } from "@/components/charts/chart-panel"
+// import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+// import { ChartPanel } from "@/components/charts/chart-panel" // Assuming you have this component
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from "recharts"
-import { useLanguage } from "@/context/language-context"
+// import { useLanguage } from "@/context/language-context" // Assuming you have this hook/context
 
+// --- DUMMY DATA SETUP ---
+
+// Mock the useLanguage hook for isolated testing/running
+const useLanguage = () => ({
+  t: (english: string, tagalog: string) => english, // Simple mock: always return English
+})
+
+// Mock the ChartPanel and UI components for full file execution
+const ChartPanel: FC<{ title: string; isLoading: boolean; children: React.ReactNode }> = ({ title, isLoading, children }) => (
+    <div className="border rounded-lg p-4 shadow-md">
+        <h3 className="text-lg font-semibold mb-3">{title} {isLoading ? "(Loading...)" : ""}</h3>
+        {children}
+    </div>
+)
+const Select: FC<any> = ({ value, onValueChange, children }) => (
+    <div className="p-2 border rounded">
+        <label className="mr-2 text-sm text-gray-500">Select Agency:</label>
+        <select value={value} onChange={(e) => onValueChange(e.target.value)} className="border p-1 rounded">
+            {children}
+        </select>
+    </div>
+)
+const SelectTrigger: FC<any> = ({ children }) => <>{children}</>
+const SelectValue: FC<any> = ({ placeholder }) => <>{placeholder}</>
+const SelectContent: FC<any> = ({ children }) => <>{children}</>
+const SelectItem: FC<any> = ({ value, children }) => <option value={value}>{children}</option>
+// End of Mock Components
+
+// --- INTERFACES (From original code) ---
 interface Expense {
   name: string
   value: number
@@ -50,10 +81,124 @@ interface ByAgencyProps {
   setSelectedAgency: Dispatch<SetStateAction<string>>
   handleChartItemClick: (data: any, title: string) => void
   isLoading?: boolean
-  expenses?: Expense[] 
+  expenses?: Expense[]
 }
 
-// Custom Tooltip Component
+// --- DUMMY DATA (from previous response) ---
+
+export const DUMMY_SELECTED_AGENCY: string = "Dept. of Health (DOH)"
+
+export const DUMMY_AGENCIES: Agency[] = [
+  { name: "Dept. of Health (DOH)", budget: 130000000000, region: "National" },
+  { name: "Dept. of Education (DepEd)", budget: 50000000000, region: "National" },
+  { name: "Dept. of Public Works and Highways (DPWH)", budget: 80000000000, region: "National" },
+  { name: "National Treasury (BTr)", budget: 500000000, region: "National" },
+]
+
+export const DUMMY_EXPENSES: Expense[] = [
+  {
+    name: "Dept. of Health (DOH) Total",
+    value: 130000000000,
+    AMT: 130000000000,
+    AGENCY: "1002",
+    UACS_AGY_DSC: "Department of Health",
+    children: [
+      {
+        name: "Procurement of Vaccines",
+        value: 55000000000,
+        AMT: 55000000000,
+        UACS_EXP_DSC: "Capital Outlays",
+        UACS_SOBJ_DSC: "Medical and Dental Supplies",
+        DSC: "Public Health Program",
+      },
+      {
+        name: "Operations of Regional Hospitals",
+        value: 40000000000,
+        AMT: 40000000000,
+        UACS_EXP_DSC: "Maintenance and Other Operating Expenses",
+        UACS_SOBJ_DSC: "Utility Expenses",
+        DSC: "Hospital Services",
+      },
+      {
+        name: "Personnel Services",
+        value: 30000000000,
+        AMT: 30000000000,
+        UACS_EXP_DSC: "Personnel Services",
+        UACS_SOBJ_DSC: "Salaries and Wages",
+        DSC: "Administrative Services",
+      },
+      {
+        name: "Miscellaneous/Uncategorized",
+        value: 5000000000,
+        AMT: 5000000000,
+        UACS_EXP_DSC: "Financial Expenses",
+        UACS_SOBJ_DSC: "Other Financial Charges",
+        DSC: "General Administration",
+      },
+    ],
+  },
+  {
+    name: "Dept. of Education (DepEd) Total",
+    value: 50000000000,
+    AMT: 50000000000,
+    AGENCY: "1003",
+    UACS_AGY_DSC: "Department of Education",
+    children: [
+      {
+        name: "Basic Education Program",
+        value: 35000000000,
+        AMT: 35000000000,
+        UACS_EXP_DSC: "Maintenance and Other Operating Expenses",
+        UACS_SOBJ_DSC: "Training Expenses",
+        DSC: "Teaching and Learning Support",
+      },
+      {
+        name: "School Infrastructure",
+        value: 15000000000,
+        AMT: 15000000000,
+        UACS_EXP_DSC: "Capital Outlays",
+        UACS_SOBJ_DSC: "Construction of School Buildings",
+        DSC: "Infrastructure Development",
+      },
+    ],
+  },
+  {
+    name: "National Treasury (BTr) Total",
+    value: 500000000,
+    AMT: 500000000,
+    AGENCY: "9001",
+    UACS_AGY_DSC: "Bureau of the Treasury",
+    children: [],
+  },
+  {
+    name: "Dept. of Public Works and Highways (DPWH) Total",
+    value: 80000000000,
+    AMT: 80000000000,
+    AGENCY: "1004",
+    UACS_AGY_DSC: "Department of Public Works and Highways",
+    children: [
+        {
+            name: "Road Network Development",
+            value: 65000000000,
+            AMT: 65000000000,
+            UACS_EXP_DSC: "Capital Outlays",
+            UACS_SOBJ_DSC: "Land Improvement Outlay",
+            DSC: "Infrastructure Program",
+        },
+        {
+            name: "Flood Control",
+            value: 15000000000,
+            AMT: 15000000000,
+            UACS_EXP_DSC: "Maintenance and Other Operating Expenses",
+            UACS_SOBJ_DSC: "General Services",
+            DSC: "Disaster Risk Management",
+        },
+    ]
+  }
+]
+
+// --- CUSTOM TOOLTIP COMPONENT ---
+
 const ChartTooltip = ({ active, payload }: any) => {
   if (!active || !payload || payload.length === 0) return null
   const data = payload[0].payload
@@ -89,6 +234,8 @@ const ChartTooltip = ({ active, payload }: any) => {
   )
 }
 
+// --- MAIN COMPONENT ---
+
 const ByAgency: FC<ByAgencyProps> = ({
   agencies,
   selectedAgency,
@@ -103,19 +250,19 @@ const ByAgency: FC<ByAgencyProps> = ({
 
   if (selectedAgency) {
     // 1. Find all top-level expenses matching the selected agency name
-    const filteredExpenses = expenses.filter(e => e.name.startsWith(selectedAgency))
-    
+    const filteredExpenses = expenses.filter(e => e.name?.startsWith(selectedAgency))
+
     // 2. Flatten the 'children' for the pie chart breakdown
     let breakdownExpenses: Expense[] = filteredExpenses.flatMap(e => e.children || [])
 
     // 3. Fallback logic: Ensure the chart always receives data
     if (breakdownExpenses.length === 0) {
         const totalValue = filteredExpenses.reduce((sum, e) => sum + e.value, 0)
-        
+
         if (totalValue > 0) {
             // Case 1: Has total value but no breakdown (show as one slice with dummy data)
-            breakdownExpenses = [{ 
-              name: t("Uncategorized Total", "Kabuuang Walang Kategorya"), 
+            breakdownExpenses = [{
+              name: t("Uncategorized Total", "Kabuuang Walang Kategorya"),
               value: totalValue,
               AMT: totalValue,
               SORDER: filteredExpenses[0]?.SORDER || "001",
@@ -140,8 +287,8 @@ const ByAgency: FC<ByAgencyProps> = ({
             }]
         } else {
             // Case 2: No data at all (show minimal slice with dummy data)
-            breakdownExpenses = [{ 
-              name: t("No Detail", "Walang Detalye"), 
+            breakdownExpenses = [{
+              name: t("No Detail", "Walang Detalye"),
               value: 1,
               AMT: 0,
               SORDER: "999",

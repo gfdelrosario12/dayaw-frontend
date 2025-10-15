@@ -56,6 +56,29 @@ function InfoModal({ title, content, isOpen, onClose }: InfoModalProps) {
 }
 // -------------------------------------------------
 
+// --- Team Member Data (Completed) ---
+const teamMembers = [
+  {
+    name: "Honeylet Igot",
+    linkedin: "https://www.linkedin.com/in/honeyletigot",
+  },
+  {
+    name: "Cathyren Sacatani",
+    linkedin: "https://www.linkedin.com/in/cathyren-sacatani-50361634a",
+  },
+  {
+    name: "Denie Rose G. Bon",
+    linkedin: "https://www.linkedin.com/in/denierosebon",
+  },
+  {
+    name: "Gladwin Ferdz I. Del Rosario",
+    linkedin: "https://www.linkedin.com/in/gladwindr", // Found in original code/snippet search
+    // Note: The search result points to another LinkedIn URL: https://www.linkedin.com/in/gladwin-ferdz-del-rosario-0b5a61235
+    // I will keep the one already present in the original code's contact section as it seems to be the preferred one: 'https://www.linkedin.com/in/gladwindr'
+  },
+]
+// ------------------------------------
+
 export function Footer() {
   const { t } = useLanguage()
   const [modalType, setModalType] = useState<"about" | "data" | "contact" | null>(null) // 'about', 'data', or 'contact'
@@ -111,23 +134,36 @@ export function Footer() {
     <div className="space-y-4">
       <p className="font-semibold">{t("Project Development Team (GDHC)", "Grupo ng Tagapaggawa ng Proyekto (GDHC)")}</p>
       <ul className="list-inside list-disc space-y-1">
-        <li>Honey Igot</li>
-        <li>Cathyren Sacatani</li>
-        <li>Denie Bon</li>
-        <li>Gladwin Ferdz Del Rosario</li>
+        {teamMembers.map((member) => (
+          <li key={member.name}>
+            {member.name}
+            {member.linkedin && (
+              <>
+                {" "}
+                (
+                <a
+                  href={member.linkedin}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-accent hover:underline"
+                >
+                  LinkedIn
+                </a>
+                )
+              </>
+            )}
+          </li>
+        ))}
       </ul>
       <p>{t("From the Polytechnic University of the Philippines", "Mula sa Polytechnic University of the Philippines")}</p>
 
       <div className="mt-4 border-t pt-4 dark:border-gray-700">
         <p className="font-semibold">{t("Contact the Project Leader", "Makipag-ugnayan sa Project Leader")}</p>
         <p className="mt-1 text-sm">
-          <strong>Gladwin Ferdz Del Rosario</strong>
+          <strong>Gladwin Ferdz Del I. Rosario</strong>
         </p>
         <p className="text-sm">
           <strong>Email:</strong> <a href="mailto:delrosario.gladwinferdz.infante@gmail.com" className="text-accent hover:underline">delrosario.gladwinferdz.infante@gmail.com</a>
-        </p>
-        <p className="text-sm">
-          <strong>LinkedIn:</strong> <a href="https://www.linkedin.com/in/gladwindr" target="_blank" rel="noopener noreferrer" className="text-accent hover:underline">https://www.linkedin.com/in/gladwindr</a>
         </p>
       </div>
     </div>

@@ -4,14 +4,17 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
 import type { ReactNode } from "react"
 
+// UPDATED INTERFACE
 interface ChartPanelProps {
   title: string
   children: ReactNode
   isLoading?: boolean
   error?: Error
+  // ADDED: Optional description for UX hints
+  description?: string 
 }
 
-export function ChartPanel({ title, children, isLoading, error }: ChartPanelProps) {
+export function ChartPanel({ title, children, isLoading, error, description }: ChartPanelProps) {
   if (error) {
     return (
       <Card className="border-border bg-card">
@@ -42,6 +45,10 @@ export function ChartPanel({ title, children, isLoading, error }: ChartPanelProp
     <Card className="border-border bg-card">
       <CardHeader>
         <CardTitle className="text-lg">{title}</CardTitle>
+        {/* ADDED: Description rendering for UX */}
+        {description && (
+            <p className="text-sm text-muted-foreground mt-1">{description}</p>
+        )}
       </CardHeader>
       <CardContent>{children}</CardContent>
     </Card>
